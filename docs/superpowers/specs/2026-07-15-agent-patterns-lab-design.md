@@ -5,7 +5,7 @@ Status: Aprovado pelo usuário, aguardando plano de implementação
 
 ## Contexto
 
-O repositório `ai-agent-v2` implementa hoje um único agente (spec.md) na raiz:
+O repositório `agent-patterns-lab` implementa hoje um único agente (spec.md) na raiz:
 `agent.py` + `tools.py` + `system_prompt.py`, usando a API do Groq. Esse
 agente corresponde ao padrão **Augmented LLM** do artigo
 [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents)
@@ -42,7 +42,7 @@ permitir comparação direta de como cada padrão resolve o mesmo problema.
 ## Arquitetura
 
 ```
-ai-agent-v2/
+agent-patterns-lab/
 ├── spec.md
 ├── README.md                    (índice do laboratório)
 ├── requirements.txt

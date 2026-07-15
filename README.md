@@ -44,7 +44,7 @@ teste rápido, não para uso interativo.
 ## Estrutura do repositório
 
 ```
-ai-agent-v2/
+agent-patterns-lab/
 ├── spec.md                      # especificação original do agente
 ├── README.md                    # este arquivo — índice do laboratório
 ├── requirements.txt
