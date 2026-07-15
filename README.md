@@ -13,6 +13,15 @@ O valor central que atravessa todos os padrões é o mesmo da spec original:
 **proveniência estrita de dados** — o agente nunca deve afirmar algo que não
 veio literalmente do payload de uma ferramenta.
 
+## Demo interativa
+
+[`demo/index.html`](demo/index.html) é uma demo estática (HTML/CSS/JS puro,
+sem backend, sem chamadas de API) que reencena os 6 padrões com transcrições
+reais já validadas contra o Groq — abra o arquivo direto no navegador
+(`open demo/index.html` ou duplo clique) e clique em "Rodar demonstração" em
+cada padrão para ver o passo a passo animado, incluindo os grupos de chamadas
+paralelas (padrão 04) e o loop de rejeição/correção (padrão 06).
+
 ## Padrões implementados
 
 | Pasta | Padrão | O que demonstra |

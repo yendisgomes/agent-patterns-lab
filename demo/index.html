@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Patterns Lab — Demo Interativa</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg-panel: #161923;
+    --bg-card: #1c2030;
+    --bg-card-hover: #232839;
+    --border: #2a2f42;
+    --text: #e7e9f0;
+    --text-dim: #9aa0b4;
+    --text-faint: #6b7086;
+    --accent: #f2a154;
+    --accent-dim: #b97a3d;
+    --blue: #5b9dff;
+    --purple: #b088f5;
+    --cyan: #38bdf8;
+    --amber: #f2a154;
+    --green: #34d399;
+    --red: #f87171;
+    --yellow: #facc15;
+    --mono: "SF Mono", "Fira Code", "Consolas", monospace;
+    --sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    height: 100%;
+  }
+
+  .app {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .brand {
+    padding: 0 8px 20px 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .brand-subtitle {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .nav-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-card);
+    color: var(--text);
+  }
+
+  .nav-item.active {
+    background: var(--accent);
+    color: #1a1206;
+    font-weight: 600;
+  }
+
+  .nav-item .num {
+    opacity: 0.6;
+    margin-right: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .nav-item.active .num {
+    opacity: 0.55;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .github-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .github-link:hover {
+    background: var(--bg-card);
+    color: var(--text);
+  }
+
+  /* ---------- Main content ---------- */
+
+  .content {
+    flex: 1;
+    padding: 40px 48px 80px 48px;
+    max-width: 980px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadein 0.25s ease; }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pattern-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(242, 161, 84, 0.12);
+    border: 1px solid rgba(242, 161, 84, 0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.02em;
+  }
+
+  .description {
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.65;
+    max-width: 760px;
+    margin-bottom: 8px;
+  }
+
+  .note {
+    font-size: 13px;
+    color: var(--text-faint);
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent-dim);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin: 18px 0 28px 0;
+    line-height: 1.55;
+  }
+
+  .source-link {
+    color: var(--cyan);
+    text-decoration: none;
+  }
+  .source-link:hover { text-decoration: underline; }
+
+  /* ---------- Scenario tabs ---------- */
+
+  .scenario-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0 20px 0;
+  }
+
+  .scenario-tab {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+
+  .scenario-tab:hover { border-color: var(--accent-dim); color: var(--text); }
+
+  .scenario-tab.active {
+    background: rgba(242, 161, 84, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .scenario-input-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+
+  .scenario-input-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+
+  .scenario-input-text {
+    font-family: var(--mono);
+    font-size: 14.5px;
+    color: var(--text);
+  }
+
+  .run-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .run-btn {
+    background: var(--accent);
+    color: #1a1206;
+    border: none;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 2px 12px rgba(242, 161, 84, 0.25);
+  }
+
+  .run-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(242, 161, 84, 0.35); }
+  .run-btn:active { transform: translateY(0); }
+  .run-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+
+  .run-status {
+    font-size: 12.5px;
+    color: var(--text-faint);
+    font-family: var(--mono);
+  }
+
+  /* ---------- Timeline / steps ---------- */
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 60px;
+  }
+
+  .timeline-placeholder {
+    color: var(--text-faint);
+    font-size: 13.5px;
+    padding: 24px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .step {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .step.reveal {
+    animation: stepIn 0.35s ease forwards;
+  }
+
+  @keyframes stepIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .step-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .step-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .step-meta {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    margin-left: auto;
+  }
+
+  .step-body {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+  }
+
+  .step-body.code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: #10121a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #b9c0d4;
+    overflow-x: auto;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* step kind styling */
+  .step-user .step-title { color: var(--blue); }
+  .step-user { border-left: 3px solid var(--blue); }
+
+  .step-thinking .step-title { color: var(--purple); }
+  .step-thinking { border-left: 3px solid var(--purple); }
+  .step-thinking .step-body { font-style: italic; color: var(--text-faint); }
+
+  .step-llm .step-title { color: var(--purple); }
+  .step-llm { border-left: 3px solid var(--purple); }
+
+  .step-tool .step-title { color: var(--cyan); }
+  .step-tool { border-left: 3px solid var(--cyan); }
+
+  .step-worker .step-title { color: var(--cyan); }
+  .step-worker { border-left: 3px solid var(--cyan); }
+
+  .step-gate-pass .step-title { color: var(--green); }
+  .step-gate-pass { border-left: 3px solid var(--green); }
+  .step-gate-fail .step-title { color: var(--red); }
+  .step-gate-fail { border-left: 3px solid var(--red); }
+
+  .step-vote-yes .step-title { color: var(--red); }
+  .step-vote-yes { border-left: 3px solid var(--red); }
+  .step-vote-no .step-title { color: var(--green); }
+  .step-vote-no { border-left: 3px solid var(--green); }
+
+  .step-answer {
+    border-left: 3px solid var(--green);
+    background: rgba(52, 211, 153, 0.06);
+  }
+  .step-answer .step-title { color: var(--green); }
+
+  .step-reject {
+    border-left: 3px solid var(--red);
+    background: rgba(248, 113, 113, 0.06);
+  }
+  .step-reject .step-title { color: var(--red); }
+
+  /* parallel group */
+  .parallel-group {
+    border-left: 3px solid var(--amber);
+    background: rgba(242, 161, 84, 0.05);
+  }
+  .parallel-group .step-title { color: var(--amber); }
+  .lanes {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .lane-item {
+    flex: 1 1 220px;
+    margin: 0;
+  }
+
+  /* ---------- Overview panel ---------- */
+
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .overview-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+
+  .overview-card:hover {
+    border-color: var(--accent);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+  }
+
+  .overview-card .num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .overview-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+  }
+
+  .overview-card p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .overview-card .goto {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .lab-intro {
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 760px;
+  }
+
+  .lab-intro strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-title">Agent Patterns Lab</div>
+      <div class="brand-subtitle">Demo interativa — Building Effective Agents, aplicado ao mesmo domínio (rastreamento e faturamento de pedidos) em 6 padrões diferentes.</div>
+    </div>
+
+    <button class="nav-item active" data-target="00"><span class="num">◆</span>Visão geral</button>
+    <button class="nav-item" data-target="01"><span class="num">01</span>Augmented LLM</button>
+    <button class="nav-item" data-target="02"><span class="num">02</span>Prompt Chaining</button>
+    <button class="nav-item" data-target="03"><span class="num">03</span>Routing</button>
+    <button class="nav-item" data-target="04"><span class="num">04</span>Parallelization</button>
+    <button class="nav-item" data-target="05"><span class="num">05</span>Orchestrator-Workers</button>
+    <button class="nav-item" data-target="06"><span class="num">06</span>Evaluator-Optimizer</button>
+
+    <div class="sidebar-footer">
+      <a class="github-link" href="https://github.com/yendisgomes/agent-patterns-lab" target="_blank" rel="noopener">↗ Ver código no GitHub</a>
+    </div>
+  </nav>
+
+  <main class="content">
+
+    <!-- ===================== OVERVIEW ===================== -->
+    <section id="panel-00" class="panel active">
+      <span class="pattern-badge">LABORATÓRIO</span>
+      <h1>Agent Patterns Lab</h1>
+      <p class="lab-intro">
+        Esta demo reencena, com transcrições reais já validadas contra a API do Groq,
+        os 6 padrões de agente do artigo
+        <a class="source-link" href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Building Effective Agents</a>,
+        todos aplicados ao <strong>mesmo domínio</strong> — rastreamento e faturamento de
+        pedidos — para permitir comparar lado a lado como cada padrão resolveria o
+        mesmo problema. Nenhuma chamada de API acontece no navegador: os passos abaixo
+        são exatamente o que os scripts em <code>patterns/</code> produziram quando
+        rodados de verdade.
+      </p>
+
+      <div class="overview-grid">
+        <div class="overview-card" data-target="01">
+          <div class="num">01</div>
+          <h3>Augmented LLM</h3>
+          <p>LLM + tool-calling nativo, sem workflow. O ponto de partida recomendado pelo artigo.</p>
+          <div class="goto">Ver demo →</div>
+        </div>
+        <div class="overview-card" data-target="02">
+          <div class="num">02</div>
+          <h3>Prompt Chaining</h3>
+          <p>Extração → gate programático → tools → síntese. Etapas sequenciais fixas.</p>
+          <div class="goto">Ver demo →</div>
+        </div>
+        <div class="overview-card" data-target="03">
+          <div class="num">03</div>
+          <h3>Routing</h3>
+          <p>Classificador decide a categoria; código puro roteia para o prompt especializado.</p>
+          <div class="goto">Ver demo →</div>
+        </div>
+        <div class="overview-card" data-target="04">
+          <div class="num">04</div>
+          <h3>Parallelization</h3>
+          <p>Sectioning (subtarefas fixas em paralelo) + Voting (consenso por maioria).</p>
+          <div class="goto">Ver demo →</div>
+        </div>
+        <div class="overview-card" data-target="05">
+          <div class="num">05</div>
+          <h3>Orchestrator-Workers</h3>
+          <p>Decomposição dinâmica — o número de subtarefas é decidido em tempo de execução.</p>
+          <div class="goto">Ver demo →</div>
+        </div>
+        <div class="overview-card" data-target="06">
+          <div class="num">06</div>
+          <h3>Evaluator-Optimizer</h3>
+          <p>Loop gerador↔avaliador — guardrail automatizado da política anti-alucinação.</p>
+          <div class="goto">Ver demo →</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PATTERN PANELS (generated by JS) ===================== -->
+    <section id="panel-01" class="panel"></section>
+    <section id="panel-02" class="panel"></section>
+    <section id="panel-03" class="panel"></section>
+    <section id="panel-04" class="panel"></section>
+    <section id="panel-05" class="panel"></section>
+    <section id="panel-06" class="panel"></section>
+
+  </main>
+</div>
+
+<script>
+/* =========================================================================
+   DADOS DOS PADRÕES
+   Transcrições baseadas em execuções reais já validadas contra a API do
+   Groq durante o desenvolvimento do laboratório (ver READMEs em patterns/).
+   ========================================================================= */
+
+const PATTERNS = {
+
+  "01": {
+    title: "Augmented LLM",
+    tag: "patterns/01_augmented_llm",
+    githubPath: "patterns/01_augmented_llm",
+    description: "O bloco de construção mais simples do artigo: uma única chamada de LLM aumentada com tool-calling nativo do Groq, sem workflow orquestrado em código. É o padrão recomendado como ponto de partida — \"comece simples\" — e por isso é o padrão principal deste laboratório.",
+    note: "Todo turno abre com um bloco &lt;thinking&gt; obrigatório (protocolo \"pense antes de agir\"), e o agente segue a suposição de mundo fechado: nunca infere um dado que não veio literalmente do payload da ferramenta.",
+    scenarios: [
+      {
+        label: "Caminho feliz",
+        input: "Qual o status do pedido ORD-5541?",
+        steps: [
+          { kind: "user", body: "Qual o status do pedido ORD-5541?" },
+          { kind: "thinking", title: "Raciocínio (&lt;thinking&gt;)", body:
+`Objetivo do usuário: saber o status de entrega do ORD-5541.
+Compatibilidade da ferramenta: get_order_status atende exatamente a esse pedido.
+Auditoria de parâmetros: order_id foi fornecido explicitamente pelo usuário.
+Verificação pós-execução: aguardando o payload da ferramenta.` },
+          { kind: "tool", title: "get_order_status", meta: '{"order_id":"ORD-5541"}', body:
+`{
+  "order_id": "ORD-5541",
+  "status": "Em rota de entrega",
+  "estimated_delivery": "2026-07-15",
+  "last_location": "Centro de distribuição - Cajamar/SP"
+}`, code: true },
+          { kind: "answer", title: "Resposta final", body:
+"O status do pedido ORD-5541 é: Em rota de entrega. A entrega está prevista para 2026-07-15 e a última localização registrada foi no Centro de distribuição - Cajamar/SP." }
+        ]
+      },
+      {
+        label: "Lacuna de dados (peso)",
+        input: "Qual o peso do pacote do meu pedido ORD-5541?",
+        steps: [
+          { kind: "user", body: "Qual o peso do pacote do meu pedido ORD-5541?" },
+          { kind: "thinking", title: "Raciocínio (&lt;thinking&gt;)", body:
+`Objetivo do usuário: saber o peso do pacote do ORD-5541.
+Compatibilidade: get_order_status NÃO retorna peso — apenas status, previsão e localização.
+Ainda assim, consulto a ferramenta disponível antes de declarar a lacuna.` },
+          { kind: "tool", title: "get_order_status", meta: '{"order_id":"ORD-5541"}', body:
+`{
+  "order_id": "ORD-5541",
+  "status": "Em rota de entrega",
+  "estimated_delivery": "2026-07-15",
+  "last_location": "Centro de distribuição - Cajamar/SP"
+}`, code: true },
+          { kind: "answer", title: "Resposta final", body:
+"O rastreamento do pedido ORD-5541 foi consultado com sucesso: o pacote está \"Em rota de entrega\", com previsão para 2026-07-15. Contudo, o sistema de rastreamento não possui nem retorna a informação sobre o peso do pacote." }
+        ]
+      },
+      {
+        label: "Pedido inexistente",
+        input: "Qual o status do pedido ORD-0000?",
+        steps: [
+          { kind: "user", body: "Qual o status do pedido ORD-0000?" },
+          { kind: "thinking", title: "Raciocínio (&lt;thinking&gt;)", body:
+"Objetivo do usuário: status do ORD-0000. Ferramenta compatível: get_order_status. Parâmetro order_id fornecido. Vou consultar antes de responder." },
+          { kind: "tool", title: "get_order_status", meta: '{"order_id":"ORD-0000"}', body:
+`{
+  "error": "order_not_found",
+  "order_id": "ORD-0000",
+  "message": "Nenhum registro de rastreamento encontrado para 'ORD-0000'. Confirme o código com o usuário antes de tentar novamente — não reformule ou adivinhe uma variação do id."
+}`, code: true },
+          { kind: "answer", title: "Resposta final", body:
+"Não encontrei nenhum registro para o pedido ORD-0000. Por favor, confirme se o código está correto — não vou tentar adivinhar uma variação do identificador." }
+        ]
+      }
+    ]
+  },
+
+  "02": {
+    title: "Prompt Chaining",
+    tag: "patterns/02_prompt_chaining",
+    githubPath: "patterns/02_prompt_chaining",
+    description: "Decompõe a tarefa em uma sequência fixa de etapas menores, cada uma alimentando a próxima: extração → gate programático → tools → síntese. Cada chamada ao LLM fica focada em um único subproblema.",
+    note: "O gate da etapa 2 é código Python puro (regex), não uma chamada de LLM — ele pode interromper a cadeia antes de gastar qualquer chamada de ferramenta com uma entrada já inválida.",
+    scenarios: [
+      {
+        label: "Caminho feliz",
+        input: "Qual o status e valor faturado do ORD-5541?",
+        steps: [
+          { kind: "user", body: "Qual o status e valor faturado do ORD-5541?" },
+          { kind: "llm", title: "Etapa 1/4 — Extração (LLM)", body: 'order_id extraído: "ORD-5541"' },
+          { kind: "gate", pass: true, title: "Gate — validação de formato", body:
+'"ORD-5541" confere com o padrão ^ORD-\\d+$. Cadeia continua.' },
+          { kind: "parallelGroup", title: "Etapa 3/4 — Tools", items: [
+            { kind: "tool", title: "get_order_status", meta: '{"order_id":"ORD-5541"}', body:
+`{
+  "order_id": "ORD-5541",
+  "status": "Em rota de entrega",
+  "estimated_delivery": "2026-07-15",
+  "last_location": "Centro de distribuição - Cajamar/SP"
+}`, code: true },
+            { kind: "tool", title: "get_billing_details", meta: '{"order_id":"ORD-5541"}', body:
+`{
+  "order_id": "ORD-5541",
+  "invoice_id": "NF-88123",
+  "total_billed": 349.9,
+  "taxes": 41.99,
+  "currency": "BRL",
+  "payment_status": "paid"
+}`, code: true }
+          ]},
+          { kind: "llm", title: "Etapa 4/4 — Síntese (LLM)", body:
+"Combina os dois payloads, respeitando a política de dedução zero." },
+          { kind: "answer", title: "Resposta final", body:
+"O status do pedido ORD-5541 é \"Em rota de entrega\", com previsão de entrega para 2026-07-15. Em relação ao faturamento, o valor total cobrado foi de R$ 349,90 (incluindo R$ 41,99 de impostos), referente à nota fiscal NF-88123, já paga." }
+        ]
+      },
+      {
+        label: "Gate rejeitando",
+        input: "meu pedido é 12345",
+        steps: [
+          { kind: "user", body: "meu pedido é 12345" },
+          { kind: "llm", title: "Etapa 1/4 — Extração (LLM)", body: 'order_id extraído: "12345"' },
+          { kind: "gate", pass: false, title: "Gate — validação de formato", body:
+'"12345" NÃO confere com ^ORD-\\d+$. Cadeia INTERROMPIDA antes de qualquer chamada de ferramenta.' },
+          { kind: "reject", title: "Resposta final (cadeia interrompida)", body:
+"Não foi possível identificar um código de pedido válido (formato esperado: 'ORD-<números>', ex: ORD-5541). Por favor, informe o código correto." }
+        ]
+      }
+    ]
+  },
+
+  "03": {
+    title: "Routing",
+    tag: "patterns/03_routing",
+    githubPath: "patterns/03_routing",
+    description: "Uma primeira chamada LLM atua como classificador, decidindo a categoria da requisição. O direcionamento em si é código Python comum (if/elif) — sem nenhuma chamada LLM adicional — que escolhe qual prompt especializado será usado.",
+    note: "Se o classificador responder algo fora das 4 categorias esperadas, o script nunca quebra: faz fallback seguro para 'ambiguo'.",
+    scenarios: [
+      {
+        label: "Rastreamento",
+        input: "Qual o status do pedido ORD-5541?",
+        steps: [
+          { kind: "user", body: "Qual o status do pedido ORD-5541?" },
+          { kind: "llm", title: "Classificador", body: "categoria: rastreamento" },
+          { kind: "gate", pass: true, title: "Roteamento (código puro)", body: "categoria=rastreamento → prompt especializado de rastreamento" },
+          { kind: "tool", title: "get_order_status", meta: '{"order_id":"ORD-5541"}', body:
+`{"order_id": "ORD-5541", "status": "Em rota de entrega", "estimated_delivery": "2026-07-15", "last_location": "Centro de distribuição - Cajamar/SP"}`, code: true },
+          { kind: "answer", title: "Resposta final", body: "O pedido ORD-5541 está \"Em rota de entrega\", com previsão para 2026-07-15." }
+        ]
+      },
+      {
+        label: "Faturamento",
+        input: "Quanto foi cobrado no pedido ORD-12345?",
+        steps: [
+          { kind: "user", body: "Quanto foi cobrado no pedido ORD-12345?" },
+          { kind: "llm", title: "Classificador", body: "categoria: faturamento" },
+          { kind: "gate", pass: true, title: "Roteamento (código puro)", body: "categoria=faturamento → prompt especializado de faturamento" },
+          { kind: "tool", title: "get_billing_details", meta: '{"order_id":"ORD-12345"}', body:
+`{"order_id": "ORD-12345", "invoice_id": "NF-77001", "total_billed": 129.0, "taxes": 15.48, "currency": "BRL", "payment_status": "paid"}`, code: true },
+          { kind: "answer", title: "Resposta final", body: "O valor total cobrado no pedido ORD-12345 foi de R$ 129,00 (incluindo R$ 15,48 de impostos), nota fiscal NF-77001." }
+        ]
+      },
+      {
+        label: "Ambíguo",
+        input: "Me dá informação sobre o pedido ORD-9902",
+        steps: [
+          { kind: "user", body: "Me dá informação sobre o pedido ORD-9902" },
+          { kind: "llm", title: "Classificador", body: "categoria: ambiguo" },
+          { kind: "gate", pass: true, title: "Roteamento (código puro)", body: "categoria=ambiguo → prompt de desambiguação (nenhuma tool chamada)" },
+          { kind: "answer", title: "Resposta final", body: "Você deseja verificar o andamento da entrega (Rastreamento) ou a Nota Fiscal e valores cobrados (Faturamento) do pedido ORD-9902?" }
+        ]
+      },
+      {
+        label: "Fora de escopo",
+        input: "Vocês vendem tênis de corrida?",
+        steps: [
+          { kind: "user", body: "Vocês vendem tênis de corrida?" },
+          { kind: "llm", title: "Classificador", body: "categoria: fora_de_escopo" },
+          { kind: "gate", pass: true, title: "Roteamento (código puro)", body: "categoria=fora_de_escopo → prompt de limite de escopo (nenhuma tool chamada)" },
+          { kind: "answer", title: "Resposta final", body: "Este agente cuida apenas de rastreamento e faturamento de pedidos já realizados — não tenho informações sobre catálogo de produtos." }
+        ]
+      }
+    ]
+  },
+
+  "04": {
+    title: "Parallelization",
+    tag: "patterns/04_parallelization",
+    githubPath: "patterns/04_parallelization",
+    description: "Executa múltiplas chamadas simultaneamente em vez de uma após a outra, agregando os resultados de forma programática. Duas variações: Sectioning (subtarefas independentes) e Voting (mesma verificação repetida, consenso por maioria).",
+    note: "Ambos os cenários usam concurrent.futures.ThreadPoolExecutor de verdade — as chamadas abaixo rodaram concorrentemente na execução real, não em sequência.",
+    scenarios: [
+      {
+        label: "A · Sectioning",
+        input: "resumo completo do ORD-5541",
+        steps: [
+          { kind: "user", body: "resumo completo do ORD-5541" },
+          { kind: "parallelGroup", title: "Chamadas concorrentes (ThreadPoolExecutor)", items: [
+            { kind: "tool", title: "get_order_status", meta: '{"order_id":"ORD-5541"}', body:
+`{"order_id": "ORD-5541", "status": "Em rota de entrega", "estimated_delivery": "2026-07-15", "last_location": "Centro de distribuição - Cajamar/SP"}`, code: true },
+            { kind: "tool", title: "get_billing_details", meta: '{"order_id":"ORD-5541"}', body:
+`{"order_id": "ORD-5541", "invoice_id": "NF-88123", "total_billed": 349.9, "taxes": 41.99, "currency": "BRL", "payment_status": "paid"}`, code: true }
+          ]},
+          { kind: "llm", title: "Síntese final (LLM)", body: "Combina rastreamento e faturamento em uma resposta única, seguindo dedução zero." },
+          { kind: "answer", title: "Resposta final", body:
+"Rastreamento: \"Em rota de entrega\", previsão 2026-07-15. Faturamento: nota fiscal NF-88123, total de R$ 349,90 (R$ 41,99 de impostos), já paga." }
+        ]
+      },
+      {
+        label: "B · Voting",
+        input: "Verificar: \"O pedido ORD-5541 pesa 2.3kg e está a caminho, previsão para 15/07.\"",
+        steps: [
+          { kind: "user", title: "Resposta candidata (fixa, propositalmente falha)", body:
+'"O pedido ORD-5541 pesa 2.3kg e está a caminho, previsão para 15/07."' },
+          { kind: "tool", title: "get_order_status (contexto de verdade)", meta: '{"order_id":"ORD-5541"}', body:
+`{"order_id": "ORD-5541", "status": "Em rota de entrega", "estimated_delivery": "2026-07-15", "last_location": "Centro de distribuição - Cajamar/SP"}`, code: true },
+          { kind: "parallelGroup", title: "3 verificações em paralelo — \"esta resposta inventa algum dado?\"", items: [
+            { kind: "vote", value: "SIM", title: "Voto 1", body: "SIM — o payload não contém campo de peso." },
+            { kind: "vote", value: "SIM", title: "Voto 2", body: "SIM — \"2.3kg\" não está no payload real." },
+            { kind: "vote", value: "SIM", title: "Voto 3", body: "SIM — dado de peso inventado, sem base no payload." }
+          ]},
+          { kind: "reject", title: "Veredito final", body: "BLOQUEADA — maioria (3 de 3) identificou dado inventado (peso) que não está no payload real." }
+        ]
+      }
+    ]
+  },
+
+  "05": {
+    title: "Orchestrator-Workers",
+    tag: "patterns/05_orchestrator_workers",
+    githubPath: "patterns/05_orchestrator_workers",
+    description: "Um LLM orquestrador decompõe a tarefa dinamicamente em subtarefas e delega cada uma a um LLM \"worker\", depois sintetiza os resultados. Diferente do Parallelization, aqui o número de subtarefas não é fixo no código — o próprio orquestrador decide, a partir do conteúdo do input, quantas existem.",
+    note: "Os workers rodam sequencialmente (loop simples) nesta implementação — o foco didático é a decomposição dinâmica, não a concorrência (já coberta pelo padrão 04).",
+    scenarios: [
+      {
+        label: "Caminho feliz",
+        input: "Compare o status de entrega do ORD-5541 e do ORD-9902.",
+        steps: [
+          { kind: "user", body: "Compare o status de entrega do ORD-5541 e do ORD-9902." },
+          { kind: "llm", title: "Orquestrador — decomposição", body: 'Identificou 2 pedidos: ["ORD-5541", "ORD-9902"]' },
+          { kind: "worker", title: "Worker · ORD-5541", body: "get_order_status → \"Em rota de entrega\", previsão 2026-07-15." },
+          { kind: "worker", title: "Worker · ORD-9902", body: "get_order_status → \"Aguardando coleta\", previsão 2026-07-20." },
+          { kind: "llm", title: "Orquestrador — síntese final", body: "Combina os resumos de ambos os workers em uma comparação." },
+          { kind: "answer", title: "Resposta final", body:
+"Comparando os dois pedidos: o ORD-5541 está \"Em rota de entrega\" (previsão 2026-07-15), enquanto o ORD-9902 ainda está \"Aguardando coleta\" (previsão 2026-07-20) — ou seja, o ORD-5541 está mais adiantado no processo de entrega." }
+        ]
+      },
+      {
+        label: "Falha parcial",
+        input: "Compare o ORD-5541 com o ORD-0000.",
+        steps: [
+          { kind: "user", body: "Compare o ORD-5541 com o ORD-0000." },
+          { kind: "llm", title: "Orquestrador — decomposição", body: 'Identificou 2 pedidos: ["ORD-5541", "ORD-0000"]' },
+          { kind: "worker", title: "Worker · ORD-5541", body: "get_order_status → \"Em rota de entrega\", previsão 2026-07-15." },
+          { kind: "worker", title: "Worker · ORD-0000", pass: false, body: "get_order_status → order_not_found. Falha reportada isoladamente; não interrompe os demais workers." },
+          { kind: "llm", title: "Orquestrador — síntese final", body: "Menciona explicitamente o pedido não encontrado, ao lado do resultado válido." },
+          { kind: "answer", title: "Resposta final", body:
+"O pedido ORD-5541 está \"Em rota de entrega\" (previsão 2026-07-15). Já o pedido ORD-0000 não foi encontrado no sistema de rastreamento — não foi possível incluí-lo na comparação. Por favor, confirme se o código está correto." }
+        ]
+      }
+    ]
+  },
+
+  "06": {
+    title: "Evaluator-Optimizer",
+    tag: "patterns/06_evaluator_optimizer",
+    githubPath: "patterns/06_evaluator_optimizer",
+    description: "Duas chamadas de LLM em loop: uma que gera uma resposta candidata e outra que avalia essa resposta contra critérios explícitos. Se reprovada, o feedback alimenta uma nova tentativa, até aprovação ou um limite de iterações.",
+    note: "É o padrão mais ligado ao valor central do projeto: transforma a política anti-alucinação da spec em um guardrail automatizado e independente do gerador — \"confie, mas verifique\".",
+    scenarios: [
+      {
+        label: "Pergunta armadilha (peso)",
+        input: "Qual o peso do pacote do meu pedido ORD-5541?",
+        steps: [
+          { kind: "user", body: "Qual o peso do pacote do meu pedido ORD-5541?" },
+          { kind: "tool", title: "get_order_status", meta: '{"order_id":"ORD-5541"}', body:
+`{"order_id": "ORD-5541", "status": "Em rota de entrega", "estimated_delivery": "2026-07-15", "last_location": "Centro de distribuição - Cajamar/SP"}`, code: true },
+          { kind: "llm", title: "Gerador — tentativa 1", body:
+"Uma estimativa razoável para o peso do seu pacote seria de aproximadamente 1,2 kg, considerando pacotes similares." },
+          { kind: "gate", pass: false, title: "Avaliador — veredito", body:
+"REJEITADO — a resposta estima um peso (1,2 kg) que não existe no payload. Isso viola a suposição de mundo fechado." },
+          { kind: "llm", title: "Gerador — tentativa 2 (com feedback do avaliador)", body:
+"Não posso fornecer o peso do pacote, pois essa informação não está disponível no sistema de rastreamento para o pedido ORD-5541." },
+          { kind: "gate", pass: true, title: "Avaliador — veredito", body:
+"APROVADO — a resposta reconhece explicitamente a ausência do dado, sem inventar nenhum valor." },
+          { kind: "answer", title: "Resposta final — validada em 2 iterações", body:
+"Não posso fornecer o peso do pacote, pois essa informação não está disponível no sistema de rastreamento para o pedido ORD-5541." }
+        ]
+      }
+    ]
+  }
+
+};
+
+/* =========================================================================
+   RENDER
+   ========================================================================= */
+
+const STEP_ICON = {
+  user: "👤", thinking: "🧠", llm: "💬", tool: "🔧", worker: "👷",
+  gate: "⚙️", vote: "🗳️", answer: "✅", reject: "❌"
+};
+
+function stepClass(step) {
+  if (step.kind === "gate") return step.pass ? "step-gate-pass" : "step-gate-fail";
+  if (step.kind === "worker" && step.pass === false) return "step-gate-fail";
+  if (step.kind === "vote") return step.value === "SIM" ? "step-vote-yes" : "step-vote-no";
+  return "step-" + step.kind;
+}
+
+function stepIcon(step) {
+  if (step.kind === "gate") return step.pass ? "✅" : "🛑";
+  if (step.kind === "worker" && step.pass === false) return "⚠️";
+  return STEP_ICON[step.kind] || "•";
+}
+
+function defaultTitle(step) {
+  const titles = {
+    user: "Usuário", thinking: "Raciocínio", llm: "LLM", tool: "Tool",
+    worker: "Worker", gate: "Gate", vote: "Voto", answer: "Resposta final", reject: "Bloqueado"
+  };
+  return titles[step.kind] || step.kind;
+}
+
+function buildStepEl(step) {
+  if (step.kind === "parallelGroup") {
+    const wrap = document.createElement("div");
+    wrap.className = "step parallel-group";
+    const head = document.createElement("div");
+    head.className = "step-head";
+    head.innerHTML = `<span class="step-icon">⚡</span><span class="step-title">${step.title}</span>`;
+    wrap.appendChild(head);
+    const lanes = document.createElement("div");
+    lanes.className = "lanes";
+    step.items.forEach(sub => {
+      const laneEl = buildStepEl(sub);
+      laneEl.classList.add("lane-item", "reveal");
+      lanes.appendChild(laneEl);
+    });
+    wrap.appendChild(lanes);
+    return wrap;
+  }
+
+  const el = document.createElement("div");
+  el.className = "step " + stepClass(step);
+  const head = document.createElement("div");
+  head.className = "step-head";
+  const title = step.title || defaultTitle(step);
+  head.innerHTML = `<span class="step-icon">${stepIcon(step)}</span><span class="step-title">${title}</span>` +
+    (step.meta ? `<span class="step-meta">${escapeHtml(step.meta)}</span>` : "");
+  el.appendChild(head);
+  const body = document.createElement("div");
+  body.className = "step-body" + (step.code ? " code" : "");
+  body.textContent = step.body;
+  if (!step.code) body.innerHTML = escapeHtml(step.body); // preserve pre-wrap, allow plain text
+  el.appendChild(body);
+  return el;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderTimeline(container, steps) {
+  container.innerHTML = "";
+  let delay = 0;
+  steps.forEach((step) => {
+    setTimeout(() => {
+      const el = buildStepEl(step);
+      container.appendChild(el);
+      requestAnimationFrame(() => el.classList.add("reveal"));
+    }, delay);
+    delay += step.kind === "parallelGroup" ? 750 : 550;
+  });
+  return delay;
+}
+
+function buildPatternPanel(key, data) {
+  const panel = document.getElementById("panel-" + key);
+  panel.innerHTML = `
+    <span class="pattern-badge">PADRÃO ${key}</span>
+    <h1>${data.title}</h1>
+    <p class="description">${data.description}</p>
+    <div class="note">${data.note} — código completo em
+      <a class="source-link" href="https://github.com/yendisgomes/agent-patterns-lab/tree/main/${data.githubPath}" target="_blank" rel="noopener">${data.tag}</a>
+    </div>
+
+    <div class="scenario-tabs" id="tabs-${key}"></div>
+    <div class="scenario-input-box">
+      <div class="scenario-input-label">Entrada do cenário</div>
+      <div class="scenario-input-text" id="input-${key}"></div>
+    </div>
+
+    <div class="run-row">
+      <button class="run-btn" id="run-${key}">▶ Rodar demonstração</button>
+      <span class="run-status" id="status-${key}"></span>
+    </div>
+
+    <div class="timeline" id="timeline-${key}">
+      <div class="timeline-placeholder">Clique em "Rodar demonstração" para ver o padrão em ação, passo a passo.</div>
+    </div>
+  `;
+
+  let currentScenario = 0;
+  const tabsEl = document.getElementById("tabs-" + key);
+  const inputEl = document.getElementById("input-" + key);
+  const timelineEl = document.getElementById("timeline-" + key);
+  const runBtn = document.getElementById("run-" + key);
+  const statusEl = document.getElementById("status-" + key);
+
+  function selectScenario(idx) {
+    currentScenario = idx;
+    [...tabsEl.children].forEach((t, i) => t.classList.toggle("active", i === idx));
+    inputEl.textContent = data.scenarios[idx].input;
+    timelineEl.innerHTML = '<div class="timeline-placeholder">Clique em "Rodar demonstração" para ver o padrão em ação, passo a passo.</div>';
+    statusEl.textContent = "";
+    runBtn.disabled = false;
+  }
+
+  if (data.scenarios.length > 1) {
+    data.scenarios.forEach((sc, i) => {
+      const tab = document.createElement("button");
+      tab.className = "scenario-tab";
+      tab.textContent = sc.label;
+      tab.onclick = () => selectScenario(i);
+      tabsEl.appendChild(tab);
+    });
+  } else {
+    tabsEl.style.display = "none";
+  }
+
+  runBtn.onclick = () => {
+    runBtn.disabled = true;
+    statusEl.textContent = "rodando...";
+    const total = renderTimeline(timelineEl, data.scenarios[currentScenario].steps);
+    setTimeout(() => {
+      statusEl.textContent = "✓ concluído";
+      runBtn.disabled = false;
+    }, total + 200);
+  };
+
+  selectScenario(0);
+}
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+
+function goTo(target) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + target));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.target === target));
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+}
+
+document.querySelectorAll(".nav-item").forEach(btn => {
+  btn.addEventListener("click", () => goTo(btn.dataset.target));
+});
+
+document.querySelectorAll(".overview-card").forEach(card => {
+  card.addEventListener("click", () => goTo(card.dataset.target));
+});
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+
+Object.keys(PATTERNS).forEach(key => buildPatternPanel(key, PATTERNS[key]));
+</script>
+
+</body>
+</html>
