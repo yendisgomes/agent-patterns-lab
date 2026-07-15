@@ -15,12 +15,16 @@ veio literalmente do payload de uma ferramenta.
 
 ## Demo interativa
 
+🔗 **[yendisgomes.github.io/agent-patterns-lab](https://yendisgomes.github.io/agent-patterns-lab/)**
+
 [`demo/index.html`](demo/index.html) é uma demo estática (HTML/CSS/JS puro,
 sem backend, sem chamadas de API) que reencena os 6 padrões com transcrições
-reais já validadas contra o Groq — abra o arquivo direto no navegador
-(`open demo/index.html` ou duplo clique) e clique em "Rodar demonstração" em
-cada padrão para ver o passo a passo animado, incluindo os grupos de chamadas
-paralelas (padrão 04) e o loop de rejeição/correção (padrão 06).
+reais já validadas contra o Groq — publicada automaticamente no GitHub Pages
+a cada push que altere `demo/` (ver `.github/workflows/pages.yml`). Também
+pode ser aberta localmente (`open demo/index.html` ou duplo clique, sem
+precisar de servidor). Clique em "Rodar demonstração" em cada padrão para
+ver o passo a passo animado, incluindo os grupos de chamadas paralelas
+(padrão 04) e o loop de rejeição/correção (padrão 06).
 
 ## Padrões implementados
 
